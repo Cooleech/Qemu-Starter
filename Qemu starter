@@ -1,8 +1,11 @@
 #!/bin/bash
-######################
-# QEMU STARTER v 0.1 #
-# Creator: Cooleech  #
-######################
+#####################
+# QEMU STARTER v0.2 #
+# Creator: Cooleech #
+#####################
+
+Version="0.2"
+ScriptName="${0##*/} $Version"
 
 function SELECT_HDD {
  SelectHDD=`zenity --title "$ScriptName - Odaberi .qvd datoteku (virtualni HDD)" --file-selection --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'`
@@ -42,6 +45,53 @@ function RUN_ISO {
  fi
 }
 
+function START {
+ QemuJob=`zenity --width 300 --height 350 --list --radiolist --title "$ScriptName" --text "Što želiš napraviti s Qemu?" \
+					--column " ? " --column "Radnja za Qemu" $MkVirtHDD "Stvori virtualni HDD" $RunISO "Pokreni ISO datoteku" \
+						$RunVirtHDD "Pokreni virtualni HDD" $ImageInstall "Instalacija preko ISO datoteke"`
+QEMU_JOB
+}
+
+function QEMU_JOB {
+ case "$QemuJob" in
+ Stv*HDD)
+  SaveHDD=`zenity --title "$ScriptName - Spremi datoteku virtualnog diska (.qvd)" --file-selection --save --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'`
+  if [ $? != 0 ]; then
+   exit
+  fi
+  HDDsize=`zenity --width 300 --height 350 --list --radiolist --title "$ScriptName" --text "Odaberi veličinu HDD-a za VM" \
+					--column " ? " --column "Veličina HDD-a u GB" FALSE 2 FALSE 4 FALSE 6 TRUE 8 FALSE 10 FALSE 15 FALSE 20`
+  if [ $? != 0 ]; then
+   exit
+  fi
+  qemu-img create "$SaveHDD.qvd" ${HDDsize}G
+  zenity --info --width 300 --title "$ScriptName" --text "Stvoren je virtualni disk:\n\n$SaveHDD.qvd\n\nveličine $HDDsize GB."
+  # Postavi varijable
+  MkVirtHDD="FALSE"
+  RunISO="FALSE"
+  RunVirtHDD="FALSE"
+  ImageInstall="TRUE"
+  START
+ ;;
+ Pok*ISO*eku)
+  SELECT_ISO
+  RAM_SIZE
+  RUN_ISO
+ ;;
+ Pok*vir*HDD)
+  SELECT_HDD
+  RAM_SIZE
+  RUN_HDD
+ ;;
+ Ins*eke)
+  SELECT_ISO
+  SELECT_HDD
+  RAM_SIZE
+  qemu-system-x86_64 -enable-kvm -cdrom "$SelectISO" -hda "$SelectHDD" -smp cores=2 -boot d -net nic -net user -m $RAMsize -localtime
+ ;;
+ esac
+}
+
 if [ $# -gt 1 ]; then
  zenity --error --title "$ScriptName" --text "Morate odabrati samo jednu datoteku!"
  exit 1
@@ -67,49 +117,9 @@ if [ "$1" != "" ]; then
  esac
 fi
 
-Version="0.1"
-ScriptName="${0##*/} $Version"
-
-QemuJob=`zenity --width 300 --height 350 --list --radiolist --title "$ScriptName" --text "Što želiš napraviti s Qemu?" \
-					--column " ? " --column "Radnja za Qemu" FALSE "Stvori virtualni HDD" TRUE "Pokreni ISO datoteku" \
-						FALSE "Pokreni virtualni HDD" FALSE "Instalacija preko ISO datoteke"`
-case "$QemuJob" in
-Stv*HDD)
- SaveHDD=`zenity --title "$ScriptName - Spremi datoteku virtualnog diska (.qvd)" --file-selection --save`
- if [ $? != 0 ]; then
-  exit
- fi
- HDDsize=`zenity --width 300 --height 350 --list --radiolist --title "$ScriptName" --text "Odaberi veličinu HDD-a za VM" \
-					--column " ? " --column "Veličina HDD-a u GB" FALSE 2 FALSE 4 FALSE 6 TRUE 8 FALSE 10 FALSE 15 FALSE 20`
- if [ $? != 0 ]; then
-  exit
- fi
- qemu-img create "$SaveHDD.qvd" ${HDDsize}G
- zenity --info --width 300 --title "$ScriptName" --text "Stvoren je virtualni disk:\n\n$SaveHDD.qvd\n\nveličine $HDDsize GB."
-;;
-Pok*ISO*eku)
- SELECT_ISO
- RAM_SIZE
- RUN_ISO
-;;
-Pok*vir*HDD)
- SELECT_HDD
- RAM_SIZE
- RUN_HDD
-;;
-Ins*eke)
- SELECT_ISO
- SELECT_HDD
- RAM_SIZE
- qemu-system-x86_64 -enable-kvm -cdrom "$SelectISO" -hda "$SelectHDD" -smp cores=2 -boot d -net nic -net user -m $RAMsize -localtime
-;;
-esac
-
-# Examples:
-#
-# qemu-img create test.qcow 5G
-# qemu-system-x86_64 -enable-kvm -cdrom /dev/cdrom -hda test.qcow -boot d -net nic -net user -m 1024 -localtime
-# qemu-system-x86_64 test.qcow -boot c -net nic -net user -m 1024 -localtime
-#
-# qemu-system-x86_64 -enable-kvm -cdrom <isoname>.iso -hda test.qcow -boot d -net nic -net user -m 1024 -localtime
-# qemu-system-x86_64 test.qcow -boot c -net nic -net user -m 1024 -localtime
+# Postavi varijable
+MkVirtHDD="FALSE"
+RunISO="TRUE"
+RunVirtHDD="FALSE"
+ImageInstall="FALSE"
+START
