@@ -22,7 +22,7 @@ else
  fi
 fi
 
-QemuStarterVersion="0.3"
+QemuStarterVersion="0.4"
 echo -e "#!/bin/bash
 #####################
 # QEMU STARTER v$QemuStarterVersion #
@@ -54,6 +54,21 @@ function RAM_SIZE {
  fi
 }
 
+function CREATE_HDD {
+ HDDsize=\`zenity --width 300 --height 350 --list --radiolist --title \"\$ScriptName\" --text \"Odaberi veličinu HDD-a za VM\" \\
+					--column \" ? \" --column \"Veličina HDD-a u GB\" FALSE 2 FALSE 4 FALSE 6 TRUE 8 FALSE 10 FALSE 15 FALSE 20\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+ SaveHDD=\`zenity --title \"\$ScriptName - Spremi datoteku virtualnog diska (.qvd)\" --file-selection --save --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+ qemu-img create \"\$SaveHDD.qvd\" \${HDDsize}G
+ SelectHDD=\"\$SaveHDD.qvd\" # Bitno za eventualnu instalaciju
+ zenity --info --width 300 --title \"\$ScriptName\" --text \"Stvoren je virtualni disk:\\\n\\\n\$SaveHDD.qvd\\\n\\\nveličine \$HDDsize GB.\"
+}
+
 function RUN_HDD {
  qemu-system-x86_64 -enable-kvm \"\$SelectHDD\" -smp cores=2 -boot c -net nic -net user -m \$RAMsize -localtime
  if [ \$? != 0 ]; then
@@ -80,17 +95,7 @@ QEMU_JOB
 function QEMU_JOB {
  case \"\$QemuJob\" in
  Stv*HDD)
-  HDDsize=\`zenity --width 300 --height 350 --list --radiolist --title \"\$ScriptName\" --text \"Odaberi veličinu HDD-a za VM\" \\
-					--column \" ? \" --column \"Veličina HDD-a u GB\" FALSE 2 FALSE 4 FALSE 6 TRUE 8 FALSE 10 FALSE 15 FALSE 20\`
-  if [ \$? != 0 ]; then
-   exit
-  fi
-  SaveHDD=\`zenity --title \"\$ScriptName - Spremi datoteku virtualnog diska (.qvd)\" --file-selection --save --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'\`
-  if [ \$? != 0 ]; then
-   exit
-  fi
-  qemu-img create \"\$SaveHDD.qvd\" \${HDDsize}G
-  zenity --info --width 300 --title \"\$ScriptName\" --text \"Stvoren je virtualni disk:\\\n\\\n\$SaveHDD.qvd\\\n\\\nveličine \$HDDsize GB.\"
+  CREATE_HDD
   # Postavi varijable za START
   MkVirtHDD=\"FALSE\"
   RunISO=\"FALSE\"
@@ -110,10 +115,13 @@ function QEMU_JOB {
  ;;
  Ins*eke)
   SELECT_ISO
-  if [ \"\$SaveHDD\" != \"\" ]; then
-   SelectHDD=\"\$SaveHDD.qvd\"
-  else
-   SELECT_HDD
+  if [ \"\$SelectHDD\" = \"\" ]; then
+   zenity --question --width 300 --title \"\$ScriptName\" --text \"Želite li stvoriti novi virtualni HDD ili koristiti postojeći?\" --cancel-label \"Koristi postojeći\" --ok-label \"Stvori novi\"
+   if [ \$? = 0 ]; then
+    CREATE_HDD
+   else
+    SELECT_HDD
+   fi
   fi
   RAM_SIZE
   qemu-system-x86_64 -enable-kvm -cdrom \"\$SelectISO\" -hda \"\$SelectHDD\" -smp cores=2 -boot d -net nic -net user -m \$RAMsize -localtime
@@ -166,4 +174,4 @@ chmod 777 $XDG_DESKTOP_DIR/QemuStarter.desktop
 
 ln -s ~/.local/QemuStarter "$HOME/Qemu Starter"
 
-zenity --info --width 250 --title "QEMU Starter Setup" --text "Instalirana je QemuStarter skripta. Lokacija skripte: $HOME/.local/\n\nNapravljen je i symlink na tu skriptu i nalazi se u $HOME mapi."
+zenity --info --width 250 --title "QEMU Starter Setup" --text "Instalirana je Qemu Starter skripta. Lokacija skripte: $HOME/.local/\n\nNapravljen je i symlink na tu skriptu i nalazi se u $HOME mapi."
