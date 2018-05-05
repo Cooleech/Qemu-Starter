@@ -1,0 +1,169 @@
+#!/bin/bash
+######################
+# QEMU Starter Setup #
+# Creator:  Cooleech #
+######################
+# Import user dirs
+. ~/.config/user-dirs.dirs
+
+if [ -f ~/.local/QemuStarter ]; then
+ zenity --question --width 250 --title "QEMU Starter Setup" --text "Želite li odinstalirati Qemu Starter skriptu?"
+ if [ $? = 0 ]; then
+  rm -f ~/.local/QemuStarter
+  rm -f $XDG_DESKTOP_DIR/QemuStarter.desktop
+  rm -f "$HOME/Qemu Starter"
+  zenity --info --width 250 --title "QEMU Starter Setup" --text "Odinstalirano!" --timeout 2
+ fi
+ exit
+else
+ zenity --question --width 250 --title "QEMU Starter Setup" --text "Želite li instalirati Qemu Starter skriptu?"
+ if [ $? != 0 ]; then
+  exit
+ fi
+fi
+
+QemuStarterVersion="0.3"
+echo -e "#!/bin/bash
+#####################
+# QEMU STARTER v$QemuStarterVersion #
+# Creator: Cooleech #
+#####################
+
+Version=\"$QemuStarterVersion\"
+ScriptName=\"\${0##*/} \$Version\"
+
+function SELECT_HDD {
+ SelectHDD=\`zenity --title \"\$ScriptName - Odaberi .qvd datoteku (virtualni HDD)\" --file-selection --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+}
+
+function SELECT_ISO {
+ SelectISO=\`zenity --title \"\$ScriptName - Odaberi .iso datoteku\" --file-selection --file-filter 'ISO | *.[Ii][Ss][Oo]'\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+}
+
+function RAM_SIZE {
+ RAMsize=\`zenity --width 300 --height 350 --list --radiolist --title \"\$ScriptName\" --text \"Odaberi količinu RAM-a za VM\" \\
+					--column \" ? \" --column \"RAM u MB\" FALSE 256 FALSE 512 FALSE 768 TRUE 1024 FALSE 1536 FALSE 2048\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+}
+
+function RUN_HDD {
+ qemu-system-x86_64 -enable-kvm \"\$SelectHDD\" -smp cores=2 -boot c -net nic -net user -m \$RAMsize -localtime
+ if [ \$? != 0 ]; then
+  zenity --error --width 300 --title \"\$ScriptName\" --text \"Greška pri pokretanju virtualnog diska!\"
+  exit
+ fi
+}
+
+function RUN_ISO {
+ qemu-system-x86_64 -enable-kvm -cdrom \"\$SelectISO\" -smp cores=2 -boot d -m \$RAMsize
+ if [ \$? != 0 ]; then
+  zenity --error --width 300 --title \"\$ScriptName\" --text \"Greška pri pokretanju ISO datoteke!\"
+  exit
+ fi
+}
+
+function START {
+ QemuJob=\`zenity --width 300 --height 350 --list --radiolist --title \"\$ScriptName\" --text \"Što želiš napraviti s Qemu?\" \\
+					--column \" ? \" --column \"Radnja za Qemu\" \$MkVirtHDD \"Stvori virtualni HDD\" \$RunVirtHDD \"Pokreni virtualni HDD\" \\
+						\$RunISO \"Pokreni ISO datoteku\" \$ImageInstall \"Instalacija pomoću ISO datoteke\"\`
+QEMU_JOB
+}
+
+function QEMU_JOB {
+ case \"\$QemuJob\" in
+ Stv*HDD)
+  HDDsize=\`zenity --width 300 --height 350 --list --radiolist --title \"\$ScriptName\" --text \"Odaberi veličinu HDD-a za VM\" \\
+					--column \" ? \" --column \"Veličina HDD-a u GB\" FALSE 2 FALSE 4 FALSE 6 TRUE 8 FALSE 10 FALSE 15 FALSE 20\`
+  if [ \$? != 0 ]; then
+   exit
+  fi
+  SaveHDD=\`zenity --title \"\$ScriptName - Spremi datoteku virtualnog diska (.qvd)\" --file-selection --save --file-filter 'Qemu virtualni disk | *.[Qq][Vv][Dd]'\`
+  if [ \$? != 0 ]; then
+   exit
+  fi
+  qemu-img create \"\$SaveHDD.qvd\" \${HDDsize}G
+  zenity --info --width 300 --title \"\$ScriptName\" --text \"Stvoren je virtualni disk:\\\n\\\n\$SaveHDD.qvd\\\n\\\nveličine \$HDDsize GB.\"
+  # Postavi varijable za START
+  MkVirtHDD=\"FALSE\"
+  RunISO=\"FALSE\"
+  RunVirtHDD=\"FALSE\"
+  ImageInstall=\"TRUE\"
+  START
+ ;;
+ Pok*ISO*)
+  SELECT_ISO
+  RAM_SIZE
+  RUN_ISO
+ ;;
+ Pok*HDD)
+  SELECT_HDD
+  RAM_SIZE
+  RUN_HDD
+ ;;
+ Ins*eke)
+  SELECT_ISO
+  if [ \"\$SaveHDD\" != \"\" ]; then
+   SelectHDD=\"\$SaveHDD.qvd\"
+  else
+   SELECT_HDD
+  fi
+  RAM_SIZE
+  qemu-system-x86_64 -enable-kvm -cdrom \"\$SelectISO\" -hda \"\$SelectHDD\" -smp cores=2 -boot d -net nic -net user -m \$RAMsize -localtime
+ ;;
+ esac
+}
+
+if [ \$# -gt 1 ]; then
+ zenity --error --title \"\$ScriptName\" --text \"Morate odabrati samo jednu datoteku!\"
+ exit 1
+fi
+
+if [ \"\$1\" != \"\" ]; then
+ RAM_SIZE
+ case \"\$1\" in
+ *qvd)
+  SelectHDD=\"\$1\"
+  RUN_HDD
+  exit
+ ;;
+ *iso)
+  SelectISO=\"\$1\"
+  RUN_ISO
+  exit
+ ;;
+ *)
+  zenity --error --title \"\$ScriptName\" --text \"Nepodržana datoteka!\"
+  exit 1
+ ;;
+ esac
+fi
+
+# Postavi varijable za START
+MkVirtHDD=\"FALSE\"
+RunISO=\"TRUE\"
+RunVirtHDD=\"FALSE\"
+ImageInstall=\"FALSE\"
+START" > ~/.local/QemuStarter
+chmod 777 ~/.local/QemuStarter
+
+echo -e "#!/usr/bin/env xdg-open
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon=/usr/share/icons/hicolor/48x48/apps/gtk3-demo.png
+Exec=bash $HOME/.local/QemuStarter
+Name=Qemu Starter" > $XDG_DESKTOP_DIR/QemuStarter.desktop
+chmod 777 $XDG_DESKTOP_DIR/QemuStarter.desktop
+
+ln -s ~/.local/QemuStarter "$HOME/Qemu Starter"
+
+zenity --info --width 250 --title "QEMU Starter Setup" --text "Instalirana je QemuStarter skripta. Lokacija skripte: $HOME/.local/\n\nNapravljen je i symlink na tu skriptu i nalazi se u $HOME mapi."
