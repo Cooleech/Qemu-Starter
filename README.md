@@ -1,2 +1,2 @@
 # Qemu-Starter
-Mala skripta za rad s Qemu virtualkom
+Setup male skripte za rad s Qemu virtualkom
