@@ -10,7 +10,7 @@ if [ -f ~/.local/QemuStarter ]; then
  zenity --question --width 250 --title "QEMU Starter Setup" --text "Želite li odinstalirati Qemu Starter skriptu?"
  if [ $? = 0 ]; then
   rm -f ~/.local/QemuStarter
-  rm -f $XDG_DESKTOP_DIR/QemuStarter.desktop
+  rm -f "$XDG_DESKTOP_DIR"/QemuStarter.desktop
   rm -f "$HOME/Qemu Starter"
   zenity --info --width 250 --title "QEMU Starter Setup" --text "Odinstalirano!" --timeout 2
  fi
@@ -169,8 +169,8 @@ Type=Application
 Terminal=false
 Icon=/usr/share/icons/hicolor/48x48/apps/gtk3-demo.png
 Exec=bash $HOME/.local/QemuStarter
-Name=Qemu Starter" > $XDG_DESKTOP_DIR/QemuStarter.desktop
-chmod 777 $XDG_DESKTOP_DIR/QemuStarter.desktop
+Name=Qemu Starter" > "$XDG_DESKTOP_DIR"/QemuStarter.desktop
+chmod 777 "$XDG_DESKTOP_DIR"/QemuStarter.desktop
 
 ln -s ~/.local/QemuStarter "$HOME/Qemu Starter"
 
