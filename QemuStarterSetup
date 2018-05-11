@@ -75,6 +75,7 @@ function RAM_SIZE {
 
 function CREATE_HDD {
  MAXstorage=\`df -h ~ | tail -n1 | awk '{print \$4}'\`
+ MAXstorage=\"\${MAXstorage:0:-1}\"
  MAXstorage=\"\${MAXstorage%.*}\"
  # Ne dopusti da se disk zapuni, miminum je 5 GiB free
  if [ \"\$MAXstorage\" -lt 5 ]; then
