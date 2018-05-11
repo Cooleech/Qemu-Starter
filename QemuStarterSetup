@@ -79,7 +79,8 @@ function CREATE_HDD {
  MAXstorage=\"\${MAXstorage%.*}\"
  # Ne dopusti da se disk zapuni, miminum je 5 GiB free
  if [ \"\$MAXstorage\" -lt 5 ]; then
-  zenity --error --title \"\$ScriptName\" --text \"Preostalo vam je manje od 5 GiB slobodnog prostora na disku.\\\nNe možete nastaviti dalje s radom. Žao mi je :(\"
+  zenity --error  --width 300 --title \"\$ScriptName\" --text \"Preostalo vam je manje od 5 GiB slobodnog prostora na disku.\\\nNe možete nastaviti dalje s radom. Žao mi je :(\"
+  exit
  fi
  HDDsize=\`zenity --scale --title \"\$ScriptName - odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika)\" --min-value 2 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 2\`
  if [ \$? != 0 ]; then
