@@ -22,7 +22,7 @@ else
  fi
 fi
 
-Version="v0.6"
+Version="v0.7"
 echo -e "#!/bin/bash
 #####################
 # QEMU STARTER $Version #
@@ -66,8 +66,8 @@ function SELECT_ISO {
 
 function RAM_SIZE {
  MAXmemory=\`cat /proc/meminfo | grep \"MemTotal\" | awk '{print \$2}'\`
- MAXmemory=\"\$(( MAXmemory / 1024 / 2 ))\"
- RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value=\$(( MAXmemory / 2 )) --step 8\`
+ MAXmemory=\"\$(( MAXmemory / 1024 / 2 ))\" # Maximalno dozvoli pola RAM-a
+ RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value \$(( MAXmemory / 2 )) --step 8\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -75,13 +75,12 @@ function RAM_SIZE {
 
 function CREATE_HDD {
  MAXstorage=\`df -h ~ | tail -n1 | awk '{print \$4}'\`
- MAXstorage=\"\${MAXstorage:0:-1}\"
- MAXstorage=\"\$(( MAXstorage - 5 ))\"
+ MAXstorage=\"\${MAXstorage%.*}\"
  # Ne dopusti da se disk zapuni, miminum je 5 GiB free
- if [ \"\$MAXstorage\" -lt 1 ]; then
+ if [ \"\$MAXstorage\" -lt 5 ]; then
   zenity --error --title \"\$ScriptName\" --text \"Preostalo vam je manje od 5 GiB slobodnog prostora na disku.\\\nNe možete nastaviti dalje s radom. Žao mi je :(\"
  fi
- HDDsize=\`zenity --scale --title \"\$ScriptName - odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika)\" --min-value 2 --max-value \$MAXstorage --value 8 --step 2\`
+ HDDsize=\`zenity --scale --title \"\$ScriptName - odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika)\" --min-value 2 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 2\`
  if [ \$? != 0 ]; then
   exit
  fi
