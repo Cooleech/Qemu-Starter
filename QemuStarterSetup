@@ -22,7 +22,7 @@ else
  fi
 fi
 
-Version="v0.5"
+Version="v0.6"
 echo -e "#!/bin/bash
 #####################
 # QEMU STARTER $Version #
@@ -30,14 +30,24 @@ echo -e "#!/bin/bash
 #####################
 
 ScriptName=\"\${0##*/} $Version\"
-# Detektiranje QEMU virtualke (TODO)
-QEMUvirtualMachine=\"qemu-system-x86_64\"
-# Detektiranje KVM-a (TODO)
-UseKVM=\" -enable-kvm\" # Dodan razmak na početku!
-# Odabir jezgri CPU-a (TODO)
-# CPUcores=\`cat /proc/cpuinfo | grep cores\`
-# zenity --scale --title \"\$ScriptName - odaberi broj jezgri CPU-a\" --text \"Broj jezgri CPU-a za QEMU\" --min-value 1 --max-value \$CPUcores --value 1 --step 1
-CPUcores=\"2\" # Default je 2
+
+# Odabir QEMU virtualke po arhitekturi
+QEMUvirtualMachine=\"qemu-system-\$(uname -m)\" # Hvala JuraStublić!
+
+# Detektiranje KVM-a
+lscpu | grep Virtualization
+if [ \$? = 0 ]; then
+ UseKVM=\" -enable-kvm\" # Dodan razmak na početku!
+else
+ UseKVM=\"\"
+fi
+
+# Odabir jezgri CPU-a
+CPUcores=\`cat /proc/cpuinfo | grep cores | awk '{print \$4}' | tail -n 1\`
+CPUcores=\`zenity --scale --title \"\$ScriptName - odaberi broj jezgri CPU-a (trenutna vrijednost je desno od kliznika)\" --text \"Broj jezgri CPU-a za QEMU\" --min-value 1 --max-value \$CPUcores --value 1 --step 1\`
+if [ \$? != 0 ]; then
+ CPUcores=\"1\"
+fi
 
 function SELECT_HDD {
  SelectHDD=\`zenity --title \"\$ScriptName - Odaberi .qvd datoteku (virtualni HDD)\" --file-selection --file-filter 'QEMU virtualni disk | *.[Qq][Vv][Dd]'\`
@@ -57,14 +67,14 @@ function RAM_SIZE {
  MAXmemory=\`cat /proc/meminfo | grep \"MemTotal\" | awk '{print \$2}'\`
  MAXmemory=\"\$(( MAXmemory / 1024 ))\"
  MAXmemory=\"\$(( MAXmemory / 2 ))\"
- RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value 1024 --step 8\`
+ RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value=\$(( MAXmemory / 2 )) --step 8\`
  if [ \$? != 0 ]; then
   exit
  fi
 }
 
 function CREATE_HDD {
- MAXstorage=\`df -h | grep /home | awk '{print \$4}'\`
+ MAXstorage=\`df -h ~ | tail -n1 | awk '{print \$4}'\`
  MAXstorage=\"\${MAXstorage:0:-1}\"
  MAXstorage=\"\$(( MAXstorage - 5 ))\"
  # Ne dopusti da se disk zapuni, miminum je 5 GiB free
