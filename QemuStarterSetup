@@ -33,6 +33,7 @@ ScriptName=\"\${0##*/} $Version\"
 
 # Odabir QEMU virtualke po arhitekturi
 QEMUvirtualMachine=\"qemu-system-\$(uname -m)\" # Hvala JuraStublić!
+QEMUvirtualMachine=\"\${QEMUvirtualMachine//i?86/i386}\" # Fix za i486, i586 i i686 arhitekture
 
 # Detektiranje KVM-a
 lscpu | grep Virtualization
@@ -65,8 +66,7 @@ function SELECT_ISO {
 
 function RAM_SIZE {
  MAXmemory=\`cat /proc/meminfo | grep \"MemTotal\" | awk '{print \$2}'\`
- MAXmemory=\"\$(( MAXmemory / 1024 ))\"
- MAXmemory=\"\$(( MAXmemory / 2 ))\"
+ MAXmemory=\"\$(( MAXmemory / 1024 / 2 ))\"
  RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value=\$(( MAXmemory / 2 )) --step 8\`
  if [ \$? != 0 ]; then
   exit
