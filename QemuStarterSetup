@@ -45,7 +45,7 @@ fi
 
 # Odabir jezgri CPU-a
 CPUcores=\`cat /proc/cpuinfo | grep cores | awk '{print \$4}' | tail -n 1\`
-CPUcores=\`zenity --scale --title \"\$ScriptName - odaberi broj jezgri CPU-a (trenutna vrijednost je desno od kliznika)\" --text \"Broj jezgri CPU-a za QEMU\" --min-value 1 --max-value \$CPUcores --value 1 --step 1\`
+CPUcores=\`zenity --scale --title \"\$ScriptName - Odaberi broj jezgri CPU-a\" --text \"Broj jezgri CPU-a za QEMU:\" --min-value 1 --max-value \$CPUcores --value 1 --step 1\`
 if [ \$? != 0 ]; then
  CPUcores=\"1\"
 fi
@@ -67,7 +67,7 @@ function SELECT_ISO {
 function RAM_SIZE {
  MAXmemory=\`cat /proc/meminfo | grep \"MemTotal\" | awk '{print \$2}'\`
  MAXmemory=\"\$(( MAXmemory / 1024 / 2 ))\" # Maximalno dozvoli pola RAM-a
- RAMsize=\`zenity --scale --title \"\$ScriptName - odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika)\" --min-value 128 --max-value \$MAXmemory --value \$(( MAXmemory / 2 )) --step 8\`
+ RAMsize=\`zenity --scale --title \"\$ScriptName - Odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika):\" --min-value 128 --max-value \$MAXmemory --value \$(( MAXmemory / 2 )) --step 8\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -82,7 +82,7 @@ function CREATE_HDD {
   zenity --error  --width 300 --title \"\$ScriptName\" --text \"Preostalo vam je manje od 5 GiB slobodnog prostora na disku.\\\nNe možete nastaviti dalje s radom. Žao mi je :(\"
   exit
  fi
- HDDsize=\`zenity --scale --title \"\$ScriptName - odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika)\" --min-value 2 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 2\`
+ HDDsize=\`zenity --scale --title \"\$ScriptName - Odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika):\" --min-value 2 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 2\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -156,7 +156,7 @@ function QEMU_JOB {
 }
 
 if [ \$# -gt 1 ]; then
- zenity --error --title \"\$ScriptName\" --text \"Morate odabrati samo jednu datoteku!\"
+ zenity --error --width 300 --title \"\$ScriptName\" --text \"Morate odabrati samo jednu datoteku!\"
  exit 1
 fi
 
@@ -174,7 +174,7 @@ if [ \"\$1\" != \"\" ]; then
   exit
  ;;
  *)
-  zenity --error --title \"\$ScriptName\" --text \"Nepodržana datoteka!\"
+  zenity --error --width 300 --title \"\$ScriptName\" --text \"Nepodržana datoteka!\"
   exit 1
  ;;
  esac
