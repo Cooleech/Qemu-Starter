@@ -16,39 +16,18 @@ if [ -f ~/.local/QemuStarter ]; then
  fi
  exit
 else
- zenity --question --width 300 --title "QEMU Starter Setup" --text "Prije instalacije ove skripte, prvo provjerite da imate instaliran qemu paket.\n\nŽelite li instalirati Qemu Starter skriptu?"
+ zenity --question --width 300 --title "QEMU Starter Setup" --text "Prije instalacije ove skripte, provjerite imate li instaliran qemu paket.\n\nŽelite li instalirati Qemu Starter skriptu?"
  if [ $? != 0 ]; then
   exit
  fi
 fi
 
-Version="v0.7"
+Version="v0.8"
 echo -e "#!/bin/bash
 #####################
 # QEMU STARTER $Version #
 # Creator: Cooleech #
 #####################
-
-ScriptName=\"\${0##*/} $Version\"
-
-# Odabir QEMU virtualke po arhitekturi
-QEMUvirtualMachine=\"qemu-system-\$(uname -m)\" # Hvala JuraStublić!
-QEMUvirtualMachine=\"\${QEMUvirtualMachine//i?86/i386}\" # Fix za i486, i586 i i686 arhitekture
-
-# Detektiranje KVM-a
-lscpu | grep Virtualization
-if [ \$? = 0 ]; then
- UseKVM=\" -enable-kvm\" # Dodan razmak na početku!
-else
- UseKVM=\"\"
-fi
-
-# Odabir jezgri CPU-a
-CPUcores=\`cat /proc/cpuinfo | grep cores | awk '{print \$4}' | tail -n 1\`
-CPUcores=\`zenity --scale --title \"\$ScriptName - Odaberi broj jezgri CPU-a\" --text \"Broj jezgri CPU-a za QEMU:\" --min-value 1 --max-value \$CPUcores --value 1 --step 1\`
-if [ \$? != 0 ]; then
- CPUcores=\"1\"
-fi
 
 function SELECT_HDD {
  SelectHDD=\`zenity --title \"\$ScriptName - Odaberi .qvd datoteku (virtualni HDD)\" --file-selection --file-filter 'QEMU virtualni disk | *.[Qq][Vv][Dd]'\`
@@ -67,7 +46,16 @@ function SELECT_ISO {
 function RAM_SIZE {
  MAXmemory=\`cat /proc/meminfo | grep \"MemTotal\" | awk '{print \$2}'\`
  MAXmemory=\"\$(( MAXmemory / 1024 / 2 ))\" # Maximalno dozvoli pola RAM-a
- RAMsize=\`zenity --scale --title \"\$ScriptName - Odaberi količinu RAM-a\" --text \"Količina RAM-a u MiB (trenutna vrijednost je desno od kliznika):\" --min-value 128 --max-value \$MAXmemory --value \$(( MAXmemory / 2 )) --step 8\`
+ RAMsize=\`zenity --scale --title \"\$ScriptName - Odaberi količinu RAM-a\" --text \"Količina RAM-a za virtualnu mašinu (u MiB):\\\t\\\t\\\t\\\t\\\t\\\t\" --min-value 128 --max-value \$MAXmemory --value \$(( MAXmemory / 2 )) --step 1\`
+ if [ \$? != 0 ]; then
+  exit
+ fi
+ CPU_CORES
+}
+
+function CPU_CORES {
+ CPUcores=\`cat /proc/cpuinfo | grep cores | awk '{print \$4}' | tail -n 1\`
+ CPUcores=\`zenity --scale --title \"\$ScriptName - Odaberi broj jezgri CPU-a\" --text \"Broj jezgri CPU-a za virtualnu mašinu:\\\t\\\t\\\t\\\t\\\t\\\t\\\t\\\t\" --min-value 1 --max-value \$CPUcores --value 1 --step 1\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -82,7 +70,7 @@ function CREATE_HDD {
   zenity --error  --width 300 --title \"\$ScriptName\" --text \"Preostalo vam je manje od 5 GiB slobodnog prostora na disku.\\\nNe možete nastaviti dalje s radom. Žao mi je :(\"
   exit
  fi
- HDDsize=\`zenity --scale --title \"\$ScriptName - Odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a u GiB (trenutna vrijednost je desno od kliznika):\" --min-value 2 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 2\`
+ HDDsize=\`zenity --scale --title \"\$ScriptName - Odaberi veličinu virtualog diska\" --text \"Veličina virtualnog HDD-a kojeg želite stvoriti (u GiB):\\\t\\\t\\\t\\\t\" --min-value 1 --max-value \$MAXstorage --value \$(( MAXstorage / 2 )) --step 1\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -155,11 +143,26 @@ function QEMU_JOB {
  esac
 }
 
+ScriptName=\"\${0##*/} $Version\"
+
+# Odabir QEMU virtualke po arhitekturi
+QEMUvirtualMachine=\"qemu-system-\$(uname -m)\" # Hvala JuraStublić!
+QEMUvirtualMachine=\"\${QEMUvirtualMachine//i?86/i386}\" # Fix za i486, i586 i i686 arhitekture
+
+# Detektiranje KVM-a
+lscpu | grep Virtualization
+if [ \$? = 0 ]; then
+ UseKVM=\" -enable-kvm\" # Dodan razmak na početku!
+else
+ UseKVM=\"\"
+fi
+
 if [ \$# -gt 1 ]; then
  zenity --error --width 300 --title \"\$ScriptName\" --text \"Morate odabrati samo jednu datoteku!\"
  exit 1
 fi
 
+# Direktno pokretanje
 if [ \"\$1\" != \"\" ]; then
  RAM_SIZE
  case \"\$1\" in
