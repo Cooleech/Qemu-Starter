@@ -22,7 +22,7 @@ else
  fi
 fi
 
-Version="v0.8"
+Version="v0.9"
 echo -e "#!/bin/bash
 #####################
 # QEMU STARTER $Version #
@@ -30,7 +30,7 @@ echo -e "#!/bin/bash
 #####################
 
 function SELECT_HDD {
- SelectHDD=\`zenity --title \"\$ScriptName - Odaberi .qvd datoteku (virtualni HDD)\" --file-selection --file-filter 'QEMU virtualni disk | *.[Qq][Vv][Dd]'\`
+ SelectHDD=\`zenity --title \"\$ScriptName - Odaberi virtualni HDD\" --file-selection --file-filter 'Svi podržani virtualni diskovi | *.[Cc][Oo][Ww] *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'QEMU virtualni diskovi | *.[Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'Ostali virtualni diskovi | *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd]'\`
  if [ \$? != 0 ]; then
   exit
  fi
@@ -164,14 +164,15 @@ fi
 
 # Direktno pokretanje
 if [ \"\$1\" != \"\" ]; then
- RAM_SIZE
  case \"\$1\" in
- *qvd)
+ *cow|*img|*vdi|*vhd|*qcow|*qcow2|*qed|*qvd)
+  RAM_SIZE
   SelectHDD=\"\$1\"
   RUN_HDD
   exit
  ;;
  *iso)
+  RAM_SIZE
   SelectISO=\"\$1\"
   RUN_ISO
   exit
@@ -201,6 +202,6 @@ Exec=bash $HOME/.local/QemuStarter
 Name=Qemu Starter" > "$XDG_DESKTOP_DIR"/QemuStarter.desktop
 chmod 777 "$XDG_DESKTOP_DIR"/QemuStarter.desktop
 
-ln -s ~/.local/QemuStarter "$HOME/Qemu Starter"
+ln -s ~/.local/QemuStarter "~/Qemu Starter"
 
 zenity --info --width 300 --title "QEMU Starter Setup" --text "Instalirana je Qemu Starter skripta. Lokacija skripte: $HOME/.local/\n\nNapravljen je i symlink na tu skriptu i nalazi se u $HOME mapi."
