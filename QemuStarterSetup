@@ -202,6 +202,6 @@ Exec=bash $HOME/.local/QemuStarter
 Name=Qemu Starter" > "$XDG_DESKTOP_DIR"/QemuStarter.desktop
 chmod 777 "$XDG_DESKTOP_DIR"/QemuStarter.desktop
 
-ln -s ~/.local/QemuStarter "~/Qemu Starter"
+ln -s ~/.local/QemuStarter "$HOME/Qemu Starter"
 
 zenity --info --width 300 --title "QEMU Starter Setup" --text "Instalirana je Qemu Starter skripta. Lokacija skripte: $HOME/.local/\n\nNapravljen je i symlink na tu skriptu i nalazi se u $HOME mapi."
