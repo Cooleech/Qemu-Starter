@@ -30,7 +30,7 @@ echo -e "#!/bin/bash
 #####################
 
 function SELECT_HDD {
- SelectHDD=\`zenity --title \"\$ScriptName - Odaberi virtualni HDD\" --file-selection --file-filter 'Svi podržani virtualni diskovi | *.[Cc][Oo][Ww] *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'QEMU virtualni diskovi | *.[Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'Ostali virtualni diskovi | *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd]'\`
+ SelectHDD=\`zenity --title \"\$ScriptName - Odaberi virtualni HDD\" --file-selection --file-filter 'Svi podržani virtualni diskovi (*.cow, *.img, *.vdi, *.vhd, *.qcow, *.qcow2, *.qed, *.qvd) | *.[Cc][Oo][Ww] *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'QEMU virtualni diskovi (*.cow, *.qcow, *.qcow2, *.qed, *.qvd) | *.[Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww] *.[Qq][Cc][Oo][Ww]2 *.[Qq][Ee][Dd] *.[Qq][Vv][Dd]' --file-filter 'Ostali virtualni diskovi (*.img, *.vdi, *.vhd) | *.[Ii][Mm][Gg] *.[Vv][Dd][Ii] *.[Vv][Hh][Dd]'\`
  if [ \$? != 0 ]; then
   exit
  fi
